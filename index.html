@@ -3,68 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Surebet System — 5 Casas</title>
+<title>Surebet System — Calculadora</title>
 <style>
   :root {
-    --bg: #0f1115; --panel: #1a1d24; --border: #2a2e38;
-    --text: #e8eaf0; --text2: #9aa0ae; --text3: #6b7280;
-    --green: #22c55e; --green-bg: rgba(34,197,94,.12);
-    --red: #ef4444; --red-bg: rgba(239,68,68,.12);
-    --accent: #3b82f6;
+    --bg:#0f1115; --panel:#1a1d24; --border:#2a2e38;
+    --text:#e8eaf0; --text2:#9aa0ae; --text3:#6b7280;
+    --green:#22c55e; --green-bg:rgba(34,197,94,.12);
+    --red:#ef4444; --red-bg:rgba(239,68,68,.12);
+    --accent:#3b82f6;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Segoe UI', system-ui, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:24px 16px; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:24px 16px; }
   .container { max-width:820px; margin:0 auto; }
-  header { text-align:center; margin-bottom:24px; }
+  header { text-align:center; margin-bottom:20px; }
   header h1 { font-size:24px; font-weight:600; }
   header p { color:var(--text2); font-size:14px; margin-top:4px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab { flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--panel);
+         color:var(--text2); font-size:14px; font-weight:600; text-align:center; cursor:pointer; transition:all .15s; }
+  .tab.on { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,.08); }
   .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; }
-  .panel-title { font-size:16px; font-weight:600; margin-bottom:14px; }
+  .panel-title { font-size:16px; font-weight:600; margin-bottom:6px; }
+  .panel-sub { font-size:13px; color:var(--text3); margin-bottom:14px; }
+  .calc-head { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:10px; padding-bottom:6px; }
+  .calc-head span { font-size:12px; color:var(--text3); font-weight:600; }
+  .calc-row { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .calc-row.total { border-bottom:none; padding-top:12px; }
+  .calc-row.total .lbl { text-align:right; font-size:14px; font-weight:600; }
+  .bk-input { display:flex; gap:6px; align-items:center; }
+  .bk-input input[type=text] { width:55%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    background:var(--bg); color:var(--text); font-size:14px; }
+  .dh-select { padding:10px 8px; border:1px solid var(--border); border-radius:10px; background:var(--bg);
+    color:var(--accent); font-size:14px; font-weight:600; cursor:pointer; }
+  .odd-in, .stk-out { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    background:var(--bg); color:var(--text); font-size:15px; font-variant-numeric:tabular-nums; }
+  .stk-out { border-style:dashed; color:var(--text2); }
+  .odd-in:focus, .bk-input input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  .cur { position:relative; }
+  .cur select { position:absolute; right:6px; top:50%; transform:translateY(-50%); border:none; background:transparent;
+    color:var(--text3); font-size:12px; }
+  .btn { padding:12px 24px; border-radius:10px; border:none; font-size:15px; font-weight:600; cursor:pointer;
+         transition:opacity .15s, transform .1s; }
+  .btn:active { transform:scale(.97); }
+  .btn-primary { background:var(--accent); color:#fff; width:100%; margin-top:16px; }
+  .btn-primary:hover { opacity:.88; }
+  .btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); width:100%; margin-top:8px; }
+  .result { display:none; margin-top:16px; padding:16px; border-radius:12px; text-align:center; }
+  .result.ok { display:block; background:var(--green-bg); border:1px solid rgba(34,197,94,.35); }
+  .result.bad { display:block; background:var(--red-bg); border:1px solid rgba(239,68,68,.35); }
+  .res-label { font-size:13px; color:var(--text2); }
+  .res-big { font-size:32px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .res-big.ok { color:var(--green); }
+  .res-big.bad { color:var(--red); }
+  .res-detail { font-size:13px; color:var(--text2); margin-top:6px; line-height:1.6; }
+  .res-detail b { color:var(--text); }
+
+  /* modo 1X2 */
   .grid-head { display:grid; grid-template-columns:150px 1fr 1fr 1fr; gap:10px; padding:0 0 6px; }
   .grid-head span { font-size:12px; color:var(--text3); }
   .bk-row { display:grid; grid-template-columns:150px 1fr 1fr 1fr; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
   .bk-row:last-of-type { border-bottom:none; }
   .bk-name { font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
   .bk-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-  .odd-in { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text); font-size:15px; font-variant-numeric:tabular-nums; transition:border-color .15s, box-shadow .15s; }
-  .odd-in:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
   .odd-in.best { border-color:var(--green); background:rgba(34,197,94,.08); }
   .controls { display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:flex-end; }
   .field { display:flex; flex-direction:column; flex:1; min-width:130px; }
   .field label { font-size:12px; color:var(--text3); margin-bottom:5px; }
-  .field input { padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text); font-size:15px; font-variant-numeric:tabular-nums; }
-  .field input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
-  .btn { padding:10px 20px; border-radius:10px; border:none; font-size:15px; font-weight:600; cursor:pointer; transition:opacity .15s, transform .1s; }
-  .btn:active { transform:scale(.97); }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { opacity:.88; }
-  .btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
-  .btn-ghost:hover { border-color:var(--text3); color:var(--text); }
-  .result { display:none; margin-top:16px; padding:16px; border-radius:12px; }
-  .result.ok { display:block; background:var(--green-bg); border:1px solid rgba(34,197,94,.35); }
-  .result.bad { display:block; background:var(--red-bg); border:1px solid rgba(239,68,68,.35); }
-  .res-label { font-size:13px; color:var(--text2); }
-  .res-big { font-size:34px; font-weight:700; font-variant-numeric:tabular-nums; margin:2px 0 10px; }
-  .res-big.ok { color:var(--green); }
-  .res-big.bad { color:var(--red); }
-  .legs { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .leg { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
+  .field input { padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg);
+                 color:var(--text); font-size:15px; font-variant-numeric:tabular-nums; }
+  .legs { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
+  .leg { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
   .leg-outcome { font-size:12px; color:var(--text3); }
-  .leg-odd { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; margin:2px 0; }
+  .leg-odd { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; }
   .leg-bk { font-size:13px; color:var(--accent); font-weight:600; }
-  .leg-stake { font-size:15px; color:var(--text2); font-variant-numeric:tabular-nums; margin-top:2px; }
-  .res-detail { font-size:13px; color:var(--text2); margin-top:10px; line-height:1.5; }
-  .res-detail b { color:var(--text); }
+  .leg-stake { font-size:15px; color:var(--text2); font-variant-numeric:tabular-nums; }
   table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
   th, td { padding:9px 8px; text-align:left; border-bottom:1px solid var(--border); }
   th { color:var(--text3); font-weight:500; font-size:12px; }
   td { font-variant-numeric:tabular-nums; }
-  .tag { display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; background:rgba(34,197,94,.15); color:var(--green); }
+  .tag { display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600;
+         background:rgba(34,197,94,.15); color:var(--green); }
   .empty { text-align:center; color:var(--text3); font-size:13px; padding:14px 0; }
   .footer-note { text-align:center; color:var(--text3); font-size:12px; margin-top:8px; }
   @media (max-width:600px) {
     .grid-head { display:none; }
     .bk-row { grid-template-columns:1fr; gap:6px; padding:10px 0; }
+    .calc-head { grid-template-columns:1fr 1fr; }
+    .calc-head span:nth-child(3), .calc-head span:nth-child(4) { display:none; }
+    .calc-row { grid-template-columns:1fr 1fr; }
+    .stk-out, .cur { display:none; }
     .legs { grid-template-columns:1fr; }
   }
 </style>
@@ -73,53 +100,95 @@
 <div class="container">
 
   <header>
-    <h1>Surebet System — 5 Casas</h1>
-    <p>Betano · Betfair · Bullbet · Esporte da Sorte · Superbet</p>
+    <h1>Surebet System</h1>
+    <p>Betano · Betfair · Bullbet · Esporte da Sorte · Superbet · Bet365</p>
   </header>
 
-  <div class="panel">
-    <div class="panel-title">Odds do jogo (1X2 — Casa / Empate / Fora)</div>
+  <div class="tabs">
+    <div class="tab on" id="tab-2vias" onclick="showMode('2vias')">2 casas — dupla hipótese</div>
+    <div class="tab" id="tab-1x2" onclick="showMode('1x2')">1X2 — 3 resultados</div>
+  </div>
+
+  <!-- ============ MODO 2 VIAS (igual ao video) ============ -->
+  <div class="panel" id="panel-2vias">
+    <div class="panel-title">Surebet de 2 casas</div>
+    <div class="panel-sub">Aposte na <b>dupla hipótese</b> em uma casa e no <b>resultado restante</b> na outra. Todas as saídas cobertas com 2 apostas.</div>
+
+    <div class="calc-head"><span>Chance</span><span>Odd</span><span>Aposta</span><span>Lucro</span></div>
+
+    <div class="calc-row">
+      <div class="bk-input">
+        <input type="text" id="d-nameA" value="Casa A" placeholder="Bet365">
+        <select class="dh-select" id="d-dhA" onchange="updateRestante()">
+          <option value="1X">1X</option>
+          <option value="X2">X2</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+      <input class="odd-in" id="d-oddA" type="number" step="0.01" min="1" placeholder="1.65">
+      <input class="stk-out" id="d-stakeA" readonly placeholder="—">
+      <input class="stk-out" id="d-lucroA" readonly placeholder="—">
+    </div>
+
+    <div class="calc-row">
+      <div class="bk-input">
+        <input type="text" id="d-nameB" value="Casa B" placeholder="Betano">
+        <span class="dh-select" style="border-style:dashed;color:var(--text3)" id="d-dhB-lbl">2</span>
+      </div>
+      <input class="odd-in" id="d-oddB" type="number" step="0.01" min="1" placeholder="6.20">
+      <input class="stk-out" id="d-stakeB" readonly placeholder="—">
+      <input class="stk-out" id="d-lucroB" readonly placeholder="—">
+    </div>
+
+    <div class="calc-row total">
+      <div></div><div class="lbl">Aposta total:</div>
+      <div class="cur"><input class="odd-in" id="d-total" type="number" step="1" min="1" value="1000"><select><option>BRL</option></select></div>
+      <input class="stk-out" id="d-lucroTotal" readonly placeholder="—" style="border-color:rgba(34,197,94,.4);color:var(--green);font-weight:700">
+    </div>
+
+    <button class="btn btn-primary" onclick="calc2vias()">Calcular surebet</button>
+    <button class="btn btn-ghost" onclick="limpar2vias()">Limpar</button>
+
+    <div id="d-result" class="result">
+      <div class="res-label" id="d-res-label"></div>
+      <div class="res-big" id="d-res-big"></div>
+      <div class="res-detail" id="d-res-detail"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODO 1X2 (5 casas) ============ -->
+  <div class="panel" id="panel-1x2" style="display:none">
+    <div class="panel-title">Surebet 1X2 — compare suas 5 casas</div>
+    <div class="panel-sub">Cole as odds de cada casa. O sistema usa a melhor odd de cada resultado.</div>
     <div class="grid-head"><span></span><span>Odd 1 (Casa)</span><span>Odd X (Empate)</span><span>Odd 2 (Fora)</span></div>
 
     <div class="bk-row"><div class="bk-name"><span class="bk-dot" style="background:#22c55e"></span>Betano</div>
       <input class="odd-in" id="Betano-1" type="number" step="0.01" min="1" placeholder="—">
       <input class="odd-in" id="Betano-X" type="number" step="0.01" min="1" placeholder="—">
-      <input class="odd-in" id="Betano-2" type="number" step="0.01" min="1" placeholder="—">
-    </div>
+      <input class="odd-in" id="Betano-2" type="number" step="0.01" min="1" placeholder="—"></div>
     <div class="bk-row"><div class="bk-name"><span class="bk-dot" style="background:#f59e0b"></span>Betfair</div>
       <input class="odd-in" id="Betfair-1" type="number" step="0.01" min="1" placeholder="—">
       <input class="odd-in" id="Betfair-X" type="number" step="0.01" min="1" placeholder="—">
-      <input class="odd-in" id="Betfair-2" type="number" step="0.01" min="1" placeholder="—">
-    </div>
+      <input class="odd-in" id="Betfair-2" type="number" step="0.01" min="1" placeholder="—"></div>
     <div class="bk-row"><div class="bk-name"><span class="bk-dot" style="background:#8b5cf6"></span>Bullbet</div>
       <input class="odd-in" id="Bullbet-1" type="number" step="0.01" min="1" placeholder="—">
       <input class="odd-in" id="Bullbet-X" type="number" step="0.01" min="1" placeholder="—">
-      <input class="odd-in" id="Bullbet-2" type="number" step="0.01" min="1" placeholder="—">
-    </div>
+      <input class="odd-in" id="Bullbet-2" type="number" step="0.01" min="1" placeholder="—"></div>
     <div class="bk-row"><div class="bk-name"><span class="bk-dot" style="background:#06b6d4"></span>Esporte da Sorte</div>
       <input class="odd-in" id="EsporteDaSorte-1" type="number" step="0.01" min="1" placeholder="—">
       <input class="odd-in" id="EsporteDaSorte-X" type="number" step="0.01" min="1" placeholder="—">
-      <input class="odd-in" id="EsporteDaSorte-2" type="number" step="0.01" min="1" placeholder="—">
-    </div>
+      <input class="odd-in" id="EsporteDaSorte-2" type="number" step="0.01" min="1" placeholder="—"></div>
     <div class="bk-row"><div class="bk-name"><span class="bk-dot" style="background:#ef4444"></span>Superbet</div>
       <input class="odd-in" id="Superbet-1" type="number" step="0.01" min="1" placeholder="—">
       <input class="odd-in" id="Superbet-X" type="number" step="0.01" min="1" placeholder="—">
-      <input class="odd-in" id="Superbet-2" type="number" step="0.01" min="1" placeholder="—">
-    </div>
+      <input class="odd-in" id="Superbet-2" type="number" step="0.01" min="1" placeholder="—"></div>
 
     <div class="controls">
-      <div class="field">
-        <label>Banca total (R$)</label>
-        <input id="bank" type="number" step="1" min="1" value="1000">
-      </div>
-      <div class="field" style="flex:0">
-        <label>&nbsp;</label>
-        <button class="btn btn-primary" onclick="calcular()">Analisar surebet</button>
-      </div>
-      <div class="field" style="flex:0">
-        <label>&nbsp;</label>
-        <button class="btn btn-ghost" onclick="limpar()">Limpar</button>
-      </div>
+      <div class="field"><label>Banca total (R$)</label><input id="bank" type="number" step="1" min="1" value="1000"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-primary" style="margin-top:0;flex:1" onclick="calc1x2()">Analisar surebet</button>
+      <button class="btn btn-ghost" style="margin-top:0;flex:1" onclick="limpar1x2()">Limpar</button>
     </div>
 
     <div id="result" class="result">
@@ -131,31 +200,103 @@
   </div>
 
   <div class="panel">
-    <div class="panel-title">Histórico de oportunidades</div>
+    <div class="panel-title">Histórico</div>
     <table>
-      <thead><tr><th>Horário</th><th>Odds 1 / X / 2</th><th>Casas vencedoras</th><th>Lucro %</th><th>Lucro R$</th></tr></thead>
+      <thead><tr><th>Modo</th><th>Horário</th><th>Odds</th><th>Casas</th><th>Lucro %</th><th>Lucro R$</th></tr></thead>
       <tbody id="history-body"></tbody>
     </table>
-    <div class="empty" id="history-empty">Nenhuma análise ainda. Preencha as odds e clique em "Analisar surebet".</div>
+    <div class="empty" id="history-empty">Nenhuma análise ainda.</div>
   </div>
 
-  <div class="footer-note">Use com responsabilidade · Apenas maiores de 18 anos · Aposte em casas licenciadas no Brasil</div>
+  <div class="footer-note">18+ · Jogue com responsabilidade · Use casas licenciadas no Brasil</div>
 </div>
 
 <script>
-const CASAS = ['Betano','Betfair','Bullbet','EsporteDaSorte','Superbet'];
-const NOMES = { Betano:'Betano', Betfair:'Betfair', Bullbet:'Bullbet', EsporteDaSorte:'E. da Sorte', Superbet:'Superbet' };
-let historico = JSON.parse(localStorage.getItem('sb_hist') || '[]');
+let historico = JSON.parse(localStorage.getItem('sb_hist2') || '[]');
 renderHistory();
 
-function getOdd(casa, out) { return parseFloat(document.getElementById(casa + '-' + out).value) || 0; }
+const RESTANTE = {'1X': '2', 'X2': '1', '12': 'X'};
+const NOME_RES = {'2': 'Fora (2)', '1': 'Casa (1)', 'X': 'Empate (X)'};
 
+function showMode(m) {
+  document.getElementById('panel-2vias').style.display = m === '2vias' ? 'block' : 'none';
+  document.getElementById('panel-1x2').style.display = m === '1x2' ? 'block' : 'none';
+  document.getElementById('tab-2vias').classList.toggle('on', m === '2vias');
+  document.getElementById('tab-1x2').classList.toggle('on', m === '1x2');
+}
+
+function updateRestante() {
+  const dh = document.getElementById('d-dhA').value;
+  document.getElementById('d-dhB-lbl').textContent = RESTANTE[dh];
+}
+
+function fmt(v) { return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+function calc2vias() {
+  const nameA = document.getElementById('d-nameA').value.trim() || 'Casa A';
+  const nameB = document.getElementById('d-nameB').value.trim() || 'Casa B';
+  const dh = document.getElementById('d-dhA').value;
+  const oA = parseFloat(document.getElementById('d-oddA').value) || 0;
+  const oB = parseFloat(document.getElementById('d-oddB').value) || 0;
+  const total = parseFloat(document.getElementById('d-total').value) || 0;
+
+  const res = document.getElementById('d-result');
+  if (!oA || !oB || oA <= 1 || oB <= 1) { show2('bad', 'Preencha as duas odds (maiores que 1.00).'); return; }
+  if (total <= 0) { show2('bad', 'Informe o valor total da aposta.'); return; }
+
+  const inv = 1/oA + 1/oB;
+  const pct = (1 - inv) * 100;
+  const ok = inv < 1;
+  const sA = total / (oA * inv);
+  const sB = total / (oB * inv);
+  const lucro = total * (1/inv - 1);
+  const lucroA = sA * oA - total;
+  const lucroB = sB * oB - total;
+
+  document.getElementById('d-stakeA').value = fmt(sA);
+  document.getElementById('d-stakeB').value = fmt(sB);
+  document.getElementById('d-lucroA').value = ok ? fmt(lucroA) : '—';
+  document.getElementById('d-lucroB').value = ok ? fmt(lucroB) : '—';
+  document.getElementById('d-lucroTotal').value = ok ? fmt(lucro) : '—';
+
+  res.className = 'result ' + (ok ? 'ok' : 'bad');
+  document.getElementById('d-res-label').textContent = ok
+    ? `Surebet confirmada: ${nameA} ${dh} contra ${nameB} ${RESTANTE[dh]}`
+    : 'Sem arbitragem — a soma dos inversos das odds deve ser menor que 1.';
+  const big = document.getElementById('d-res-big');
+  big.textContent = (ok ? '+' : '') + pct.toFixed(2) + '%';
+  big.className = 'res-big ' + (ok ? 'ok' : 'bad');
+
+  document.getElementById('d-res-detail').innerHTML = ok
+    ? `Aposte <b>R$ ${fmt(Math.round(sA))}</b> em <b>${nameA}</b> (${dh} @ ${oA.toFixed(2)}) e <b>R$ ${fmt(Math.round(sB))}</b> em <b>${nameB}</b> (${NOME_RES[RESTANTE[dh]]} @ ${oB.toFixed(2)}).<br>Lucro garantido: <b>R$ ${fmt(lucro)}</b> em qualquer resultado.`
+    : `Soma dos inversos: <b>${inv.toFixed(4)}</b> (precisa ser < 1).`;
+
+  if (ok) salvarHist('2 vias', `${oA.toFixed(2)} / ${oB.toFixed(2)}`, `${nameA} / ${nameB}`, pct, lucro);
+}
+
+function show2(tipo, msg) {
+  const res = document.getElementById('d-result');
+  res.className = 'result ' + tipo;
+  document.getElementById('d-res-label').textContent = msg;
+  document.getElementById('d-res-big').textContent = '';
+  document.getElementById('d-res-big').className = 'res-big';
+  document.getElementById('d-res-detail').innerHTML = '';
+}
+
+function limpar2vias() {
+  ['d-oddA','d-oddB','d-stakeA','d-stakeB','d-lucroA','d-lucroB','d-lucroTotal'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('d-result').className = 'result';
+}
+
+const CASAS = ['Betano','Betfair','Bullbet','EsporteDaSorte','Superbet'];
+const NOMES = { Betano:'Betano', Betfair:'Betfair', Bullbet:'Bullbet', EsporteDaSorte:'E. da Sorte', Superbet:'Superbet' };
+
+function getOdd(c, o) { return parseFloat(document.getElementById(c + '-' + o).value) || 0; }
 function melhor(out) {
   let best = 0, bk = '';
   for (const c of CASAS) { const o = getOdd(c, out); if (o > best) { best = o; bk = c; } }
   return { odd: best, casa: bk };
 }
-
 function marcarMelhores(b1, bX, b2) {
   for (const c of CASAS) {
     document.getElementById(c + '-1').classList.toggle('best', b1.casa === c && b1.odd > 0);
@@ -164,85 +305,68 @@ function marcarMelhores(b1, bX, b2) {
   }
 }
 
-function calcular() {
+function calc1x2() {
   const bank = parseFloat(document.getElementById('bank').value) || 0;
-  if (bank <= 0) { show('bad', 'Informe um valor de banca válido.'); return; }
-
   const b1 = melhor('1'), bX = melhor('X'), b2 = melhor('2');
   marcarMelhores(b1, bX, b2);
-
-  if (!b1.odd || !bX.odd || !b2.odd) {
-    show('bad', 'São necessárias odds válidas para os 3 resultados (1, X e 2) em pelo menos uma casa cada.');
-    return;
-  }
+  const res = document.getElementById('result');
+  if (bank <= 0) { show1('bad', 'Informe um valor de banca válido.'); return; }
+  if (!b1.odd || !bX.odd || !b2.odd) { show1('bad', 'São necessárias odds válidas para os 3 resultados.'); return; }
 
   const inv = 1/b1.odd + 1/bX.odd + 1/b2.odd;
   const pct = (1 - inv) * 100;
-  const ehSurebet = inv < 1;
-
-  const s1 = bank / (b1.odd * inv);
-  const sX = bank / (bX.odd * inv);
-  const s2 = bank / (b2.odd * inv);
+  const ok = inv < 1;
+  const s1 = bank / (b1.odd * inv), sX = bank / (bX.odd * inv), s2 = bank / (b2.odd * inv);
   const lucro = bank * (1/inv - 1);
 
-  const res = document.getElementById('result');
-  res.className = 'result ' + (ehSurebet ? 'ok' : 'bad');
-  document.getElementById('res-label').textContent = ehSurebet ? 'Surebet encontrada nas suas casas!' : 'Não há arbitragem com essas odds.';
+  res.className = 'result ' + (ok ? 'ok' : 'bad');
+  document.getElementById('res-label').textContent = ok ? 'Surebet encontrada nas suas casas!' : 'Não há arbitragem com essas odds.';
   const big = document.getElementById('res-big');
-  big.textContent = (ehSurebet ? '+' : '') + pct.toFixed(2) + '%';
-  big.className = 'res-big ' + (ehSurebet ? 'ok' : 'bad');
+  big.textContent = (ok ? '+' : '') + pct.toFixed(2) + '%';
+  big.className = 'res-big ' + (ok ? 'ok' : 'bad');
 
   document.getElementById('res-legs').innerHTML =
     leg('Casa (1)', b1, s1) + leg('Empate (X)', bX, sX) + leg('Fora (2)', b2, s2);
+  document.getElementById('res-detail').innerHTML = ok
+    ? 'Lucro garantido: <b>R$ ' + fmt(lucro) + '</b>'
+    : 'Soma dos inversos: <b>' + inv.toFixed(4) + '</b> (precisa ser < 1).';
 
-  const usadas = [...new Set([NOMES[b1.casa], NOMES[bX.casa], NOMES[b2.casa]])];
-  document.getElementById('res-detail').innerHTML = ehSurebet
-    ? 'Lucro garantido: <b>R$ ' + lucro.toFixed(2) + '</b> · Casas envolvidas: <b>' + usadas.join(', ') + '</b><br>Arredonde os valores ao apostar (ex: R$ ' + Math.round(s1) + ' / R$ ' + Math.round(sX) + ' / R$ ' + Math.round(s2) + ') para não levantar suspeita.'
-    : 'Soma dos inversos: <b>' + inv.toFixed(4) + '</b> — precisa ser menor que 1. Ajuste as odds ou tente outro jogo.';
-
-  if (ehSurebet) {
-    const agora = new Date();
-    historico.unshift({
-      hora: agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0'),
-      o1: b1.odd, oX: bX.odd, o2: b2.odd,
-      c1: NOMES[b1.casa], cX: NOMES[bX.casa], c2: NOMES[b2.casa],
-      pct: pct, lucro: lucro
-    });
-    if (historico.length > 30) historico = historico.slice(0, 30);
-    localStorage.setItem('sb_hist', JSON.stringify(historico));
-    renderHistory();
-  }
+  if (ok) salvarHist('1X2', b1.odd.toFixed(2)+' / '+bX.odd.toFixed(2)+' / '+b2.odd.toFixed(2),
+    NOMES[b1.casa]+' / '+NOMES[bX.casa]+' / '+NOMES[b2.casa], pct, lucro);
 }
 
-function leg(titulo, b, stake) {
-  return '<div class="leg">' +
-    '<div class="leg-outcome">' + titulo + '</div>' +
-    '<div class="leg-odd">' + b.odd.toFixed(2) + '</div>' +
-    '<div class="leg-bk">' + NOMES[b.casa] + '</div>' +
-    '<div class="leg-stake">R$ ' + stake.toFixed(2) + '</div>' +
-    '</div>';
+function leg(t, b, s) {
+  return '<div class="leg"><div class="leg-outcome">' + t + '</div><div class="leg-odd">' + b.odd.toFixed(2) +
+    '</div><div class="leg-bk">' + NOMES[b.casa] + '</div><div class="leg-stake">R$ ' + fmt(s) + '</div></div>';
 }
 
-function show(tipo, msg) {
+function show1(tipo, msg) {
   const res = document.getElementById('result');
   res.className = 'result ' + tipo;
   document.getElementById('res-label').textContent = msg;
   document.getElementById('res-big').textContent = '';
   document.getElementById('res-big').className = 'res-big';
   document.getElementById('res-legs').innerHTML = '';
-  document.getElementById('res-detail').textContent = '';
+  document.getElementById('res-detail').innerHTML = '';
 }
 
-function limpar() {
+function limpar1x2() {
   for (const c of CASAS) for (const o of ['1','X','2']) {
     const el = document.getElementById(c + '-' + o);
     el.value = ''; el.classList.remove('best');
   }
   document.getElementById('result').className = 'result';
-  document.getElementById('res-label').textContent = '';
-  document.getElementById('res-big').textContent = '';
-  document.getElementById('res-legs').innerHTML = '';
-  document.getElementById('res-detail').textContent = '';
+}
+
+function salvarHist(modo, odds, casas, pct, lucro) {
+  const a = new Date();
+  historico.unshift({
+    modo, odds, casas, pct, lucro,
+    hora: a.getHours().toString().padStart(2,'0') + ':' + a.getMinutes().toString().padStart(2,'0')
+  });
+  if (historico.length > 30) historico = historico.slice(0, 30);
+  localStorage.setItem('sb_hist2', JSON.stringify(historico));
+  renderHistory();
 }
 
 function renderHistory() {
@@ -251,13 +375,12 @@ function renderHistory() {
   if (!historico.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   tbody.innerHTML = historico.map(h =>
-    '<tr><td>' + h.hora + '</td>' +
-    '<td>' + h.o1.toFixed(2) + ' / ' + h.oX.toFixed(2) + ' / ' + h.o2.toFixed(2) + '</td>' +
-    '<td>' + h.c1 + ' / ' + h.cX + ' / ' + h.c2 + '</td>' +
-    '<td><span class="tag">+' + h.pct.toFixed(2) + '%</span></td>' +
-    '<td>R$ ' + h.lucro.toFixed(2) + '</td></tr>'
+    '<tr><td>' + h.modo + '</td><td>' + h.hora + '</td><td>' + h.odds + '</td><td>' + h.casas + '</td>' +
+    '<td><span class="tag">+' + h.pct.toFixed(2) + '%</span></td><td>R$ ' + fmt(h.lucro) + '</td></tr>'
   ).join('');
 }
+
+updateRestante();
 </script>
 </body>
 </html>
