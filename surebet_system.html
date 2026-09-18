@@ -88,10 +88,15 @@
   @media (max-width:600px) {
     .grid-head { display:none; }
     .bk-row { grid-template-columns:1fr; gap:6px; padding:10px 0; }
-    .calc-head { grid-template-columns:1fr 1fr; }
+    .calc-head { grid-template-columns:1.4fr 1fr; }
     .calc-head span:nth-child(3), .calc-head span:nth-child(4) { display:none; }
-    .calc-row { grid-template-columns:1fr 1fr; }
-    .stk-out, .cur { display:none; }
+    .calc-row { grid-template-columns:1.4fr 1fr; }
+    .calc-row .stk-out { display:none; }
+    .calc-row.total { grid-template-columns:1fr; gap:8px; }
+    .calc-row.total .lbl { text-align:left; }
+    .calc-row.total .cur { position:static; display:block; }
+    .calc-row.total .cur input { width:100%; }
+    .calc-row.total .lbl::before { content:"\20BF \0020"; }
     .legs { grid-template-columns:1fr; }
   }
 </style>
@@ -125,7 +130,7 @@
           <option value="12">12</option>
         </select>
       </div>
-      <input class="odd-in" id="d-oddA" type="number" step="0.01" min="1" placeholder="1.65">
+      <input class="odd-in" id="d-oddA" type="number" step="0.01" min="1" inputmode="decimal" placeholder="1.65">
       <input class="stk-out" id="d-stakeA" readonly placeholder="—">
       <input class="stk-out" id="d-lucroA" readonly placeholder="—">
     </div>
@@ -135,14 +140,14 @@
         <input type="text" id="d-nameB" value="Casa B" placeholder="Betano">
         <span class="dh-select" style="border-style:dashed;color:var(--text3)" id="d-dhB-lbl">2</span>
       </div>
-      <input class="odd-in" id="d-oddB" type="number" step="0.01" min="1" placeholder="6.20">
+      <input class="odd-in" id="d-oddB" type="number" step="0.01" min="1" inputmode="decimal" placeholder="6.20">
       <input class="stk-out" id="d-stakeB" readonly placeholder="—">
       <input class="stk-out" id="d-lucroB" readonly placeholder="—">
     </div>
 
     <div class="calc-row total">
       <div></div><div class="lbl">Aposta total:</div>
-      <div class="cur"><input class="odd-in" id="d-total" type="number" step="1" min="1" value="1000"><select><option>BRL</option></select></div>
+      <div class="cur"><input class="odd-in" id="d-total" type="number" step="1" min="1" value="1000" inputmode="decimal"><select><option>BRL</option></select></div>
       <input class="stk-out" id="d-lucroTotal" readonly placeholder="—" style="border-color:rgba(34,197,94,.4);color:var(--green);font-weight:700">
     </div>
 
@@ -184,7 +189,7 @@
       <input class="odd-in" id="Superbet-2" type="number" step="0.01" min="1" placeholder="—"></div>
 
     <div class="controls">
-      <div class="field"><label>Banca total (R$)</label><input id="bank" type="number" step="1" min="1" value="1000"></div>
+      <div class="field"><label>Banca total (R$)</label><input id="bank" type="number" step="1" min="1" value="1000" inputmode="decimal"></div>
     </div>
     <div style="display:flex;gap:10px;margin-top:12px">
       <button class="btn btn-primary" style="margin-top:0;flex:1" onclick="calc1x2()">Analisar surebet</button>
