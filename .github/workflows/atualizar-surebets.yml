@@ -1,0 +1,40 @@
+name: Atualizar Surebets
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Buscar surebets na API
+        env:
+          BB_TOKEN: ${{ secrets.BB_TOKEN }}
+          BB_FILTRO: ${{ secrets.BB_FILTRO }}
+        run: |
+          python mapeador_surebets.py \
+            --token "$BB_TOKEN" \
+            --filtro "$BB_FILTRO" \
+            --banca 1000 \
+            --saida relatorio.html
+
+      - name: Publicar relatorio no site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add relatorio.html
+          git diff --cached --quiet && echo "Sem mudancas" || (git commit -m "chore: atualiza surebets [skip ci]" && git push)
