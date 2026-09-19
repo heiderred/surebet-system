@@ -43,6 +43,20 @@ Onde encontrar cada token:
 - **BetBurger**: My Account -> API (muda a cada login)
 - **Telegram**: crie um bot com @BotFather; chat_id via `https://api.telegram.org/bot<TOKEN>/getUpdates`
 
+## Modo automatico (GitHub Actions)
+
+O site busca as surebets sozinho a cada 15 minutos — sem PC ligado:
+
+1. No repositorio: **Settings -> Secrets and variables -> Actions -> New repository secret**
+2. Crie `BB_TOKEN` (seu token da API BetBurger, My Account -> API)
+3. Crie `BB_FILTRO` (o numero do seu filtro em Multifilters)
+4. Em **Settings -> Actions -> General -> Workflow permissions**, marque "Read and write permissions"
+5. Pronto: o workflow `atualizar-surebets.yml` roda sozinho e publica `relatorio.html`
+
+A pagina "Oportunidades ao vivo" fica disponivel em `/relatorio.html`.
+ATENCAO: o token do BetBurger expira a cada login — quando o relatorio parar
+de atualizar, gere um novo token e atualize o Secret `BB_TOKEN`.
+
 ## Avisos
 
 - Preencha o dicionário `BK_NAMES` no topo dos scripts com os IDs reais das casas

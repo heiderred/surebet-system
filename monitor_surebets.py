@@ -93,6 +93,36 @@ def enviar_telegram(token_bot, chat_id, texto):
         log(f"[Telegram] falha ao enviar: {e}")
 
 
+def marcar_tendencias(ops, hist):
+    """Compara odds com o ciclo anterior:
+    - tend por perna: 1 subiu / -1 desceu / 0 sem historico (seta no relatorio)
+    - atrasada: perna cuja odd NAO moveu enquanto as outras duas moveram >=2%
+      (sinal classico de casa atrasada = janela de arbitragem)."""
+    for o in ops:
+        chave = o.get("id") or o.get("jogo")
+        odds = {p["resultado"]: p["odd"] for p in o["pernas"]}
+        prev = hist.get(chave) or {}
+        for p in o["pernas"]:
+            ant = prev.get(p["resultado"])
+            if not ant or ant <= 1:
+                p["tend"] = 0
+            elif p["odd"] > ant:
+                p["tend"] = 1
+            elif p["odd"] < ant:
+                p["tend"] = -1
+            else:
+                p["tend"] = 0
+        variacoes = {r: abs(odds[r] - prev[r]) / prev[r] for r in odds if prev.get(r, 0) > 1}
+        o["atrasada"] = ""
+        if len(variacoes) == 3:
+            maior = max(variacoes.values())
+            parada = min(variacoes, key=lambda r: variacoes[r])
+            if maior >= 0.02 and variacoes[parada] <= 0.005:
+                o["atrasada"] = parada
+        hist[chave] = dict(odds)
+    return ops
+
+
 def buscar(token, filtros, modo, per_page=30):
     dados = [("access_token", token), ("per_page", per_page), ("grouped", 1)]
     for f in filtros:
@@ -258,9 +288,11 @@ function render(){
       const stake = bank / (p.odd * inv);
       const link = p.link ? `<a href="${p.link}" target="_blank" rel="noopener">apostar</a>` : '';
       const nome = p.resultado === '1' ? 'Casa (1)' : p.resultado === 'X' ? 'Empate (X)' : 'Fora (2)';
-      return `<div class="leg"><div class="r">${nome}</div><div class="o">${p.odd.toFixed(2)}</div><div class="c">${p.casa}</div><div class="s">${fmtBRL(stake)} ${link}</div></div>`;
+      const seta = p.tend > 0 ? '<span style="color:var(--green)">\u25b2</span>' : p.tend < 0 ? '<span style="color:#ef4444">\u25bc</span>' : '<span style="color:var(--text3)">\u2022</span>';
+      const atras = o.atrasada === p.resultado;
+      return `<div class="leg" ${atras ? 'style="border-color:#f59e0b"' : ''}><div class="r">${nome}</div><div class="o">${p.odd.toFixed(2)} ${seta}</div><div class="c">${p.casa}</div>${atras ? '<div style="font-size:11px;color:#f59e0b;font-weight:700">\u26a0 CASA ATRASADA</div>' : ''}<div class="s">${fmtBRL(stake)} ${link}</div></div>`;
     }).join('');
-    html += `<div class="op"><div class="op-top"><div><div class="op-jogo">${o.jogo}</div><div class="op-meta">${o.liga} · ${fmtData(o.inicio)} · lucro ${fmtBRL(lucro)}</div></div><div class="op-pct">+${o.lucro_pct.toFixed(2)}%</div></div><div class="legs">${legs}</div></div>`;
+    html += `<div class="op"><div class="op-top"><div><div class="op-jogo">${o.jogo}</div><div class="op-meta">${o.liga} · ${fmtData(o.inicio)} · lucro ${fmtBRL(lucro)}</div></div><div class="op-pct">+${o.lucro_pct.toFixed(2)}%${o.atrasada ? '<div style="font-size:11px;color:#f59e0b;font-weight:600">\u26a0 casa atrasada</div>' : ''}</div></div><div class="legs">${legs}</div></div>`;
   });
   el.innerHTML = html;
 }
@@ -293,6 +325,7 @@ def main():
 
     carregar_template()
     vistos = {}
+    hist_odds = {}
     primeiro_ciclo = True
 
     log(f"Monitor iniciado | modo={args.modo} | alerta>={args.min_alerta}% | a cada {args.intervalo}min")
@@ -304,6 +337,7 @@ def main():
             resp = buscar(args.token, args.filtro, args.modo)
             if resp is not None:
                 ops = extrair_1x2(resp)
+                ops = marcar_tendencias(ops, hist_odds)
                 gerar_html(ops, args.modo, args.banca, args.saida)
                 acima = [o for o in ops if o.lucro_pct >= args.min_alerta]
 
@@ -329,7 +363,8 @@ def main():
                             "\u26a1 <b>NOVA SUREBET " + f"+{o['lucro_pct']}%</b>\n"
                             f"<b>{o['jogo']}</b>\n{o.get('liga','')}\n"
                             f"{pernas_txt}\n"
-                            f"Lucro s/ banca: ajuste no relatorio"
+                            + (f"\u26a0 Casa ATRASADA na perna {o['atrasada']} — aposte ela primeiro!\n" if o.get("atrasada") else "")
+                            + "Lucro s/ banca: ajuste no relatorio"
                         )
                     log(">>> ALERTA SONORO + TELEGRAM! <<<")
                     alerta_sonoro(3)
