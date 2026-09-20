@@ -60,7 +60,7 @@ BK_NAMES = {
 
 def buscar(token, filtros, modo, per_page=30):
     dados = [("access_token", token), ("per_page", per_page), ("grouped", 1)]
-    for f in filtros:
+    for f in (filtros or []):
         dados.append(("search_filter[]", f))
     r = requests.post(ENDPOINTS[modo], data=dados, timeout=40)
     if r.status_code == 401:
@@ -256,7 +256,7 @@ render();
 def main():
     ap = argparse.ArgumentParser(description="Mapeador de surebets 1X2 (BetBurger API)")
     ap.add_argument("--token", required=True, help="Seu token da API (My Account -> API)")
-    ap.add_argument("--filtro", type=int, action="append", required=True,
+    ap.add_argument("--filtro", type=int, action="append", default=None,
                     help="ID do filtro (Multifilters). Repita para varios.")
     ap.add_argument("--modo", choices=["prematch", "live"], default="prematch")
     ap.add_argument("--banca", type=float, default=1000)
@@ -280,6 +280,19 @@ def main():
     gerar_html(ops, args.modo, args.banca, args.saida)
     print(f"Relatorio gerado: {args.saida}")
     print("Abra o arquivo no navegador. Ajuste a banca e os filtros direto na pagina.")
+
+    # Diagnostico: consulta SEM filtro para comparar
+    try:
+        resp2 = buscar(args.token, None, args.modo)
+        total_livre = resp2.get("total")
+        livres, _ = extrair_1x2(resp2)
+        print(f"DIAGNOSTICO sem filtro: total no sistema = {total_livre} | surebets 1X2 = {len(livres)}")
+        if total_livre and int(total_livre) > 0 and len(ops) == 0:
+            print(">>> O filtro esta bloqueando tudo! Edite o filtro no BetBurger (casas, %% minimo) ou use outro ID.")
+        elif not total_livre or int(total_livre) == 0:
+            print(">>> A API devolveu ZERO mesmo sem filtro. Provavel limitacao do plano gratuito.")
+    except Exception as e:
+        print(f"Diagnostico falhou: {e}")
 
     if not BK_NAMES:
         print("\nDICA: rode com --listar-casas para descobrir os IDs das casas e mapear os nomes.")
