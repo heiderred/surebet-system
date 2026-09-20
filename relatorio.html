@@ -2,29 +2,119 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="120">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Surebets ao vivo</title>
+<title>Surebets 1X2 — relatorio</title>
 <style>
-  body { font-family:'Segoe UI',system-ui,sans-serif; background:#0f1115; color:#e8eaf0;
-         display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:20px; text-align:center; }
-  .box { max-width:420px; }
-  .spin { width:36px; height:36px; border:3px solid #2a2e38; border-top-color:#3b82f6;
-          border-radius:50%; margin:0 auto 16px; animation:g 1s linear infinite; }
-  @keyframes g { to { transform:rotate(360deg); } }
-  a { color:#3b82f6; }
+  :root { --bg:#0f1115; --panel:#1a1d24; --border:#2a2e38; --text:#e8eaf0; --text2:#9aa0ae;
+          --text3:#6b7280; --green:#22c55e; --red:#ef4444; --accent:#3b82f6; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); padding:24px 16px; }
+  .container { max-width:900px; margin:0 auto; }
+  header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+  h1 { font-size:22px; } header p { color:var(--text2); font-size:13px; }
+  .controls { display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; background:var(--panel);
+              border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px; }
+  .field { display:flex; flex-direction:column; }
+  .field label { font-size:12px; color:var(--text3); margin-bottom:4px; }
+  .field input { padding:9px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg);
+                 color:var(--text); font-size:15px; width:140px; font-variant-numeric:tabular-nums; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { padding:6px 12px; border-radius:999px; border:1px solid var(--border); font-size:13px; cursor:pointer;
+          color:var(--text2); user-select:none; }
+  .chip.on { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,.1); }
+  .stats { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px 18px; flex:1; min-width:120px; }
+  .stat .v { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat .l { font-size:12px; color:var(--text3); }
+  .op { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; }
+  .op-top { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+  .op-jogo { font-size:15px; font-weight:600; }
+  .op-meta { color:var(--text3); font-size:12px; margin-top:2px; }
+  .op-pct { font-size:22px; font-weight:700; color:var(--green); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .legs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .leg { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; }
+  .leg .r { font-size:12px; color:var(--text3); }
+  .leg .o { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .leg .c { font-size:13px; color:var(--accent); font-weight:600; }
+  .leg .s { font-size:14px; color:var(--text2); font-variant-numeric:tabular-nums; }
+  .leg a { color:inherit; text-decoration:none; }
+  .leg a:hover { text-decoration:underline; }
+  .empty { text-align:center; color:var(--text3); padding:40px 0; }
+  @media (max-width:620px) { .legs { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
-<div class="box">
-  <div class="spin"></div>
-  <h2 style="font-size:18px;margin:0 0 8px">Buscando surebets...</h2>
-  <p style="color:#9aa0ae;font-size:14px;line-height:1.6">
-    Esta pagina e atualizada automaticamente a cada 15 minutos pelo GitHub Actions.<br><br>
-    Se esta mensagem persistir por mais de 20 minutos, configure os Secrets
-    <b>BB_TOKEN</b> e <b>BB_FILTRO</b> no seu repositorio (veja o README).<br><br>
-    <a href="./index.html">Voltar para a calculadora</a>
-  </p>
+<div class="container">
+  <header>
+    <div><h1>Surebets 1X2 — PREMATCH</h1><p>Gerado em 20/09/2026 00:35 · Betano · Betfair · Bullbet · Esporte da Sorte · Superbet</p></div>
+  </header>
+
+  <div class="controls">
+    <div class="field"><label>Banca (R$)</label><input id="bank" type="number" value="1000.0" min="1" oninput="render()"></div>
+    <div class="field"><label>% minimo</label><input id="minpct" type="number" value="0" step="0.1" min="0" oninput="render()"></div>
+    <div class="field"><label>Filtrar por casa envolvida</label><div class="chips" id="chips"></div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="st-total">0</div><div class="l">oportunidades</div></div>
+    <div class="stat"><div class="v" id="st-max" style="color:var(--green)">—</div><div class="l">maior lucro %</div></div>
+    <div class="stat"><div class="v" id="st-lucro">R$ 0,00</div><div class="l">lucro na maior (banca atual)</div></div>
+  </div>
+
+  <div id="lista"></div>
 </div>
+
+<script>
+const OPS = [];
+const casas = [...new Set(OPS.flatMap(o => o.pernas.map(p => p.casa)))].sort();
+let casaFiltro = null;
+
+const chipsEl = document.getElementById('chips');
+chipsEl.innerHTML = '<span class="chip on" data-c="">Todas</span>' + casas.map(c =>
+  `<span class="chip" data-c="${c}">${c}</span>`).join('');
+chipsEl.addEventListener('click', e => {
+  const c = e.target.dataset && e.target.dataset.c;
+  if (c === undefined) return;
+  casaFiltro = c === '' ? null : c;
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.c === c));
+  render();
+});
+
+function fmtBRL(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function fmtData(ts){ try { return new Date(ts*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } }
+
+function render(){
+  const bank = parseFloat(document.getElementById('bank').value) || 0;
+  const minpct = parseFloat(document.getElementById('minpct').value) || 0;
+  let lista = OPS.filter(o => o.lucro_pct >= minpct);
+  if (casaFiltro) lista = lista.filter(o => o.pernas.some(p => p.casa === casaFiltro));
+
+  document.getElementById('st-total').textContent = lista.length;
+  document.getElementById('st-max').textContent = lista.length ? '+' + lista[0].lucro_pct.toFixed(2) + '%' : '—';
+
+  const el = document.getElementById('lista');
+  if (!lista.length){ el.innerHTML = '<div class="empty">Nenhuma surebet 1X2 encontrada com esses filtros.</div>'; return; }
+
+  let html = '';
+  lista.forEach(o => {
+    const odds = {}; o.pernas.forEach(p => odds[p.resultado] = p.odd);
+    const inv = 1/odds['1'] + 1/odds['X'] + 1/odds['2'];
+    const lucro = bank * (1/inv - 1);
+    document.getElementById('st-lucro').textContent = fmtBRL(Math.max(0, lucro));
+    const legs = o.pernas.map(p => {
+      const stake = bank / (p.odd * inv);
+      const link = p.link ? `<a href="${p.link}" target="_blank" rel="noopener">apostar</a>` : '';
+      return `<div class="leg"><div class="r">${p.resultado === '1' ? 'Casa (1)' : p.resultado === 'X' ? 'Empate (X)' : 'Fora (2)'}</div>
+              <div class="o">${p.odd.toFixed(2)}</div><div class="c">${p.casa}</div>
+              <div class="s">${fmtBRL(stake)} ${link}</div></div>`;
+    }).join('');
+    html += `<div class="op"><div class="op-top"><div><div class="op-jogo">${o.jogo}</div>
+             <div class="op-meta">${o.liga} · ${fmtData(o.inicio)} · lucro ${fmtBRL(lucro)}</div></div>
+             <div class="op-pct">+${o.lucro_pct.toFixed(2)}%</div></div><div class="legs">${legs}</div></div>`;
+  });
+  el.innerHTML = html;
+}
+render();
+</script>
 </body>
 </html>
